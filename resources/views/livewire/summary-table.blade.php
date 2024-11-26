@@ -73,8 +73,8 @@
                 
                 <div>
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Phone</label>
-                        <input type="text" wire:model.live="phone" 
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Phone <span class="text-red-500">*</span></label>
+                        <input type="tel" type="text" wire:model.live="phone" 
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-indigo-500 
                             {{ isset($validationErrors['phone']) ? 'border-red-500' : '' }}">
                         @if(isset($validationErrors['phone']))
@@ -83,7 +83,7 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email <span class="text-red-500">*</span></label>
                         <input type="email" wire:model.live="email" 
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-indigo-500
                             {{ isset($validationErrors['email']) ? 'border-red-500' : '' }}">
@@ -93,7 +93,7 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Notes</label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Notes <span class="text-red-500">*</span></label>
                         <textarea wire:model.live="notes" rows="3"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-indigo-500
                             {{ isset($validationErrors['notes']) ? 'border-red-500' : '' }}"></textarea>

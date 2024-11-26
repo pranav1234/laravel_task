@@ -30,10 +30,22 @@ class SummaryTable extends Component
     public $validationErrors = [];
 
     protected $rules = [
-        'phone' => 'required|min:10',
+        'phone' => ['required', 'regex:/^07\d{9}$/', 'size:11'],
         'email' => 'required|email',
         'notes' => 'required|min:3'
     ];
+    public function getValidationMessages()
+    {
+        return [
+            'phone.required' => 'The phone number is required.',
+            'phone.regex' => 'The phone number must start with 07 and contain 11 digits.',
+            'phone.size' => 'The phone number must be exactly 11 digits.',
+            'email.required' => 'The email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'notes.required' => 'Notes are required.',
+            'notes.min' => 'Notes must be at least 3 characters.'
+        ];
+    }
 
     public function addNew()
     {
@@ -64,7 +76,9 @@ class SummaryTable extends Component
                 'email' => $this->email,
                 'notes' => $this->notes,
             ],
-            $this->rules
+            $this->rules,
+            $this->getValidationMessages()
+
         );
 
         if ($validator->fails()) {
@@ -96,10 +110,15 @@ class SummaryTable extends Component
 
     public function updated($propertyName)
     {
+        if ($propertyName === 'phone') {
+            $this->phone = preg_replace('/[^0-9]/', '', $this->phone);
+        }
         // Validate single field
         $validator = Validator::make(
             [$propertyName => $this->$propertyName],
-            [$propertyName => $this->rules[$propertyName]]
+            [$propertyName => $this->rules[$propertyName]],
+            $this->getValidationMessages()
+
         );
 
         if ($validator->fails()) {
