@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Summary;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Validator;
 
 class SummaryTable extends Component
 {
@@ -19,34 +20,81 @@ class SummaryTable extends Component
     public $email;
     public $notes;
 
+    // Store original values
+    public $originalPhone;
+    public $originalEmail;
+    public $originalNotes;
+
+    // Add property for validation errors
+    public $validationErrors = [];
+
     protected $rules = [
         'phone' => 'required|min:10',
         'email' => 'required|email',
         'notes' => 'required|min:3'
     ];
 
-    // Add real-time validation
     public function updated($propertyName)
     {
-        $this->validateOnly($propertyName);
+        // Validate single field
+        $validator = Validator::make(
+            [$propertyName => $this->$propertyName],
+            [$propertyName => $this->rules[$propertyName]]
+        );
+
+        if ($validator->fails()) {
+            $this->validationErrors[$propertyName] = $validator->errors()->first($propertyName);
+        } else {
+            unset($this->validationErrors[$propertyName]);
+        }
     }
 
     public function edit($summaryId)
     {
-        $this->resetValidation();
+        $this->validationErrors = [];
         $summary = Summary::findOrFail($summaryId);
 
         $this->editId = $summary->id;
-        $this->phone = $summary->phone;
-        $this->email = $summary->email;
-        $this->notes = $summary->notes;
+
+        // Set current and original values
+        $this->phone = $this->originalPhone = $summary->phone;
+        $this->email = $this->originalEmail = $summary->email;
+        $this->notes = $this->originalNotes = $summary->notes;
 
         $this->isModalOpen = true;
     }
 
+    public function hasChanges()
+    {
+        return $this->phone !== $this->originalPhone ||
+            $this->email !== $this->originalEmail ||
+            $this->notes !== $this->originalNotes;
+    }
+
+    public function isEditButtonEnabled()
+    {
+        return empty($this->validationErrors) && $this->hasChanges();
+    }
+
     public function update()
     {
-        $this->validate();
+        $validator = Validator::make(
+            [
+                'phone' => $this->phone,
+                'email' => $this->email,
+                'notes' => $this->notes,
+            ],
+            $this->rules
+        );
+
+        if ($validator->fails()) {
+            $this->validationErrors = $validator->errors()->messages();
+            return;
+        }
+
+        if (!$this->hasChanges()) {
+            return;
+        }
 
         Summary::find($this->editId)->update([
             'phone' => $this->phone,
@@ -68,7 +116,8 @@ class SummaryTable extends Component
     public function closeModal()
     {
         $this->isModalOpen = false;
-        $this->resetValidation();
+        $this->validationErrors = [];
+        $this->reset(['editId', 'phone', 'email', 'notes', 'originalPhone', 'originalEmail', 'originalNotes']);
     }
 
     public function render()
