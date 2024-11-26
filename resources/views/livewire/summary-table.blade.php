@@ -26,7 +26,7 @@
         </button>
 
     <div class="overflow-x-auto bg-white rounded-lg shadow">
-        <table class="min-w-full divide-y divide-gray-200">
+        <table class="min-w-full w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone
@@ -40,7 +40,8 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 @foreach($summaries as $summary)
-                    <tr class="hover:bg-gray-50 cursor-pointer transition-colors" wire:click="edit({{ $summary->id }})">
+                    <tr class="hover:bg-gray-50 cursor-pointer transition-colors" wire:key="summary-{{ $summary->id }}"
+                    x-on:click="$wire.edit({{ $summary->id }})">
                         <td class="px-6 py-4 whitespace-nowrap">{{ $summary->phone }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ $summary->email }}</td>
                         <td class="px-6 py-4">{{ $summary->notes }}</td>
