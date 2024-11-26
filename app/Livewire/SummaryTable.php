@@ -6,6 +6,7 @@ use App\Models\Summary;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class SummaryTable extends Component
 {
@@ -56,16 +57,36 @@ class SummaryTable extends Component
 
     public function edit($summaryId)
     {
-        $this->isEditing = true;
-        $this->validationErrors = [];
-        $summary = Summary::findOrFail($summaryId);
+        Log::info('Edit method called', [
+            'summaryId' => $summaryId,
+            'isEditing' => $this->isEditing,
+            'current_time' => now()
+        ]);
 
-        $this->editId = $summary->id;
-        $this->phone = $this->originalPhone = $summary->phone;
-        $this->email = $this->originalEmail = $summary->email;
-        $this->notes = $this->originalNotes = $summary->notes;
+        try {
+            $this->resetValidation();
+            $summary = Summary::findOrFail($summaryId);
 
-        $this->isModalOpen = true;
+            $this->editId = $summary->id;
+            $this->phone = $this->originalPhone = $summary->phone;
+            $this->email = $this->originalEmail = $summary->email;
+            $this->notes = $this->originalNotes = $summary->notes;
+
+            $this->isEditing = true;
+            $this->isModalOpen = true;
+
+            Log::info('Modal should be open', [
+                'isModalOpen' => $this->isModalOpen,
+                'isEditing' => $this->isEditing,
+                'summary' => $summary->toArray()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in edit method', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     public function save()
@@ -82,7 +103,11 @@ class SummaryTable extends Component
         );
 
         if ($validator->fails()) {
-            $this->validationErrors = $validator->errors()->messages();
+            $this->validationErrors = collect($validator->errors()->messages())
+                ->map(function ($messages) {
+                    return $messages[0]; // Get first message from each field
+                })
+                ->toArray();
             return;
         }
 
@@ -102,10 +127,15 @@ class SummaryTable extends Component
                 'email' => $this->email,
                 'notes' => $this->notes,
             ]);
+            $this->resetPage();
+
             session()->flash('message', 'Summary added successfully.');
         }
 
         $this->closeModal();
+        $this->reset(['phone', 'email', 'notes', 'editId', 'isEditing']);
+        $this->isModalOpen = false;
+        $this->validationErrors = [];
     }
 
     public function updated($propertyName)
@@ -169,7 +199,9 @@ class SummaryTable extends Component
     public function closeModal()
     {
         $this->isModalOpen = false;
-        $this->resetFields();
+        $this->isEditing = false;
+        $this->validationErrors = [];
+        $this->reset(['phone', 'email', 'notes', 'editId', 'originalPhone', 'originalEmail', 'originalNotes']);
     }
 
     public function render()

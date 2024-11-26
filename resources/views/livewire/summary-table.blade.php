@@ -40,7 +40,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 @foreach($summaries as $summary)
-                    <tr class="cursor-pointer" wire:click="edit({{ $summary->id }})">
+                    <tr class="hover:bg-gray-50 cursor-pointer transition-colors" wire:click="edit({{ $summary->id }})">
                         <td class="px-6 py-4 whitespace-nowrap">{{ $summary->phone }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ $summary->email }}</td>
                         <td class="px-6 py-4">{{ $summary->notes }}</td>
