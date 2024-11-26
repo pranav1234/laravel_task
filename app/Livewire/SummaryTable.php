@@ -14,6 +14,7 @@ class SummaryTable extends Component
     public $search = '';
     public $perPage = 10;
     public $isModalOpen = false;
+    public $isEditing = false;
 
     public $editId;
     public $phone;
@@ -34,29 +35,20 @@ class SummaryTable extends Component
         'notes' => 'required|min:3'
     ];
 
-    public function updated($propertyName)
+    public function addNew()
     {
-        // Validate single field
-        $validator = Validator::make(
-            [$propertyName => $this->$propertyName],
-            [$propertyName => $this->rules[$propertyName]]
-        );
-
-        if ($validator->fails()) {
-            $this->validationErrors[$propertyName] = $validator->errors()->first($propertyName);
-        } else {
-            unset($this->validationErrors[$propertyName]);
-        }
+        $this->resetFields();
+        $this->isEditing = false;
+        $this->isModalOpen = true;
     }
 
     public function edit($summaryId)
     {
+        $this->isEditing = true;
         $this->validationErrors = [];
         $summary = Summary::findOrFail($summaryId);
 
         $this->editId = $summary->id;
-
-        // Set current and original values
         $this->phone = $this->originalPhone = $summary->phone;
         $this->email = $this->originalEmail = $summary->email;
         $this->notes = $this->originalNotes = $summary->notes;
@@ -64,19 +56,7 @@ class SummaryTable extends Component
         $this->isModalOpen = true;
     }
 
-    public function hasChanges()
-    {
-        return $this->phone !== $this->originalPhone ||
-            $this->email !== $this->originalEmail ||
-            $this->notes !== $this->originalNotes;
-    }
-
-    public function isEditButtonEnabled()
-    {
-        return empty($this->validationErrors) && $this->hasChanges();
-    }
-
-    public function update()
+    public function save()
     {
         $validator = Validator::make(
             [
@@ -92,18 +72,53 @@ class SummaryTable extends Component
             return;
         }
 
-        if (!$this->hasChanges()) {
-            return;
+        if ($this->isEditing) {
+            if (!$this->hasChanges()) {
+                return;
+            }
+            Summary::find($this->editId)->update([
+                'phone' => $this->phone,
+                'email' => $this->email,
+                'notes' => $this->notes,
+            ]);
+            session()->flash('message', 'Summary updated successfully.');
+        } else {
+            Summary::create([
+                'phone' => $this->phone,
+                'email' => $this->email,
+                'notes' => $this->notes,
+            ]);
+            session()->flash('message', 'Summary added successfully.');
         }
 
-        Summary::find($this->editId)->update([
-            'phone' => $this->phone,
-            'email' => $this->email,
-            'notes' => $this->notes,
-        ]);
-
         $this->closeModal();
-        session()->flash('message', 'Summary updated successfully.');
+    }
+
+    public function updated($propertyName)
+    {
+        // Validate single field
+        $validator = Validator::make(
+            [$propertyName => $this->$propertyName],
+            [$propertyName => $this->rules[$propertyName]]
+        );
+
+        if ($validator->fails()) {
+            $this->validationErrors[$propertyName] = $validator->errors()->first($propertyName);
+        } else {
+            unset($this->validationErrors[$propertyName]);
+        }
+    }
+
+    public function hasChanges()
+    {
+        return $this->phone !== $this->originalPhone ||
+            $this->email !== $this->originalEmail ||
+            $this->notes !== $this->originalNotes;
+    }
+
+    public function isEditButtonEnabled()
+    {
+        return empty($this->validationErrors) && $this->hasChanges();
     }
 
     public function delete()
@@ -113,11 +128,22 @@ class SummaryTable extends Component
         session()->flash('message', 'Summary deleted successfully.');
     }
 
+    private function resetFields()
+    {
+        $this->editId = null;
+        $this->phone = '';
+        $this->email = '';
+        $this->notes = '';
+        $this->originalPhone = '';
+        $this->originalEmail = '';
+        $this->originalNotes = '';
+        $this->validationErrors = [];
+    }
+
     public function closeModal()
     {
         $this->isModalOpen = false;
-        $this->validationErrors = [];
-        $this->reset(['editId', 'phone', 'email', 'notes', 'originalPhone', 'originalEmail', 'originalNotes']);
+        $this->resetFields();
     }
 
     public function render()
@@ -126,6 +152,7 @@ class SummaryTable extends Component
             'summaries' => Summary::where('email', 'like', "%{$this->search}%")
                 ->orWhere('phone', 'like', "%{$this->search}%")
                 ->orWhere('notes', 'like', "%{$this->search}%")
+                ->latest()
                 ->paginate($this->perPage)
         ]);
     }

@@ -17,6 +17,13 @@
             </select>
         </div>
     </div>
+    <button wire:click="addNew"
+            class="bg-indigo-600 hover:bg-indigo-700 mb-6 text-white px-4 py-2 rounded-lg flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add Summary
+        </button>
 
     <div class="overflow-x-auto bg-white rounded-lg shadow">
         <table class="min-w-full divide-y divide-gray-200">
@@ -61,7 +68,8 @@
         <!-- Modal panel -->
         <div class="relative inline-block p-6 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
             <div class="w-full">
-                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Edit Summary</h3>
+                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">                        {{ $isEditing ? 'Edit Summary' : 'Add New Summary' }}
+                </h3>
                 
                 <div>
                     <div class="mb-4">
@@ -98,22 +106,25 @@
                     <!-- Action Buttons -->
                     <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse gap-3">
                         <button type="button" 
-                            wire:click="update"
+                            wire:click="save"
                             @class([
                                 'inline-flex justify-center px-4 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2',
                                 'text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' => $this->isEditButtonEnabled(),
                                 'text-gray-400 bg-gray-200 cursor-not-allowed' => !$this->isEditButtonEnabled()
                             ])
-                            @disabled(!$this->isEditButtonEnabled())>
-                            Edit
+                            @disabled($isEditing ? !$this->isEditButtonEnabled() : empty($phone) || empty($email) || empty($notes) || !empty($validationErrors))>
+                            {{ $isEditing ? 'Edit' : 'Save' }}
+
                         </button>
-                        
+                        @if($isEditing)
                         <button type="button"
                             wire:click="delete"
                             wire:confirm="Are you sure you want to delete this record?"
                             class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                             Delete
                         </button>
+                        @endif
+
                         
                         <button type="button" 
                             wire:click="closeModal"
