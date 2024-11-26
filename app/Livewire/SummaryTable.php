@@ -137,7 +137,14 @@ class SummaryTable extends Component
 
     public function isEditButtonEnabled()
     {
-        return empty($this->validationErrors) && $this->hasChanges();
+        if ($this->isEditing) {
+            return empty($this->validationErrors) && $this->hasChanges();
+        }
+
+        return !empty($this->phone) &&
+            !empty($this->email) &&
+            !empty($this->notes) &&
+            empty($this->validationErrors);
     }
 
     public function delete()

@@ -112,7 +112,7 @@
                                 'text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' => $this->isEditButtonEnabled(),
                                 'text-gray-400 bg-gray-200 cursor-not-allowed' => !$this->isEditButtonEnabled()
                             ])
-                            @disabled($isEditing ? !$this->isEditButtonEnabled() : empty($phone) || empty($email) || empty($notes) || !empty($validationErrors))>
+                            @disabled(!$this->isEditButtonEnabled())>
                             {{ $isEditing ? 'Edit' : 'Save' }}
 
                         </button>
